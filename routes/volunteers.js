@@ -1,6 +1,7 @@
 const { v4: uuidv4 } = require("uuid");
 const db = require(`../utils/helpers`);
 var express = require("express");
+const { restart } = require("nodemon");
 var router = express.Router();
 
 const TableName = "volunteers";
@@ -42,6 +43,13 @@ router.post("/", async function (req, res, next) {
       console.log(e);
       res.sendStatus(500);
     });
+});
+
+router.get("/faris", async function (req, res, next) {
+  res.send(
+    {name: "faris",
+    srjrj: "ujrif"}
+  )
 });
 
 module.exports = router;
