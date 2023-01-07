@@ -5,7 +5,7 @@ var router = express.Router();
 
 const TableName = "products";
 
-/* GET all products. */
+/* GET all items. */
 router.get("/", async function (req, res, next) {
   await db
     .scan({
@@ -13,7 +13,12 @@ router.get("/", async function (req, res, next) {
     })
     .promise()
     .then((dbResult) => {
-      res.send(dbResult.Items);
+      res.send(
+        dbResult.Items.map(({ productId, ...rest }) => ({
+          ...rest,
+          itemId: productId,
+        }))
+      );
     })
     .catch((e) => {
       console.log(e);
@@ -21,11 +26,13 @@ router.get("/", async function (req, res, next) {
     });
 });
 
-/* POST a new product. */
+/* POST a new item. */
 router.post("/", async function (req, res, next) {
+  // to remove once model is correct
+  const productId = uuidv4();
   const Item = {
     ...req.body,
-    productId: uuidv4(),
+    productId,
   };
   const params = {
     TableName,
@@ -36,7 +43,7 @@ router.post("/", async function (req, res, next) {
     .promise()
     .then(() => {
       console.log(Item);
-      res.send({ ...Item });
+      res.send({ ...Item, itemId: productId });
     })
     .catch((e) => {
       console.log(e);
