@@ -7,6 +7,7 @@ var logger = require("morgan");
 var cors = require("cors");
 
 var indexRouter = require("./routes/index");
+var householdsRouter = require("./routes/households");
 var volunteersRouter = require("./routes/volunteers");
 var recipientsRouter = require("./routes/recipients");
 var itemsRouter = require("./routes/items");
@@ -26,6 +27,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
+app.use("/households", householdsRouter);
 app.use("/volunteers", volunteersRouter);
 app.use("/recipients", recipientsRouter);
 app.use("/items", itemsRouter);
