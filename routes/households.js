@@ -44,4 +44,33 @@ router.post("/", async function (req, res, next) {
     });
 });
 
+/* POST a new order for a household. */
+router.post("/:householdId/orders", async function (req, res, next) {
+  const newOrder = [
+    {
+      ...req.body,
+      orderId: uuidv4(),
+    },
+  ];
+  const params = {
+    TableName: householdsTableName,
+    Key: { householdId: req.params.householdId },
+    UpdateExpression: "SET orders = list_append(orders, :newOrder)",
+    ExpressionAttributeValues: {
+      ":newOrder": newOrder,
+    },
+  };
+  await db
+    .update(params)
+    .promise()
+    .then(() => {
+      console.log(newOrder);
+      res.send({ ...newOrder });
+    })
+    .catch((e) => {
+      console.log(e);
+      res.sendStatus(500);
+    });
+});
+
 module.exports = router;
