@@ -73,4 +73,9 @@ router.post("/:householdId/orders", async function (req, res, next) {
     });
 });
 
+/* POST a new order for a household. */
+router.post("/:householdId/orders/:orderId/complete", async function (req, res, next) {
+  res.sendStatus(200)
+});
+
 module.exports = router;
