@@ -4,6 +4,7 @@ var express = require("express");
 var router = express.Router();
 
 const householdsTableName = "households";
+const ordersTableName = "orders";
 
 /* GET all households. */
 router.get("/", async function (req, res, next) {
@@ -46,26 +47,21 @@ router.post("/", async function (req, res, next) {
 
 /* POST a new order for a household. */
 router.post("/:householdId/orders", async function (req, res, next) {
-  const newOrder = [
-    {
-      ...req.body,
-      orderId: uuidv4(),
-    },
-  ];
+  const Item = {
+    ...req.body,
+    orderId: uuidv4(),
+    householdId: req.params.householdId,
+  };
   const params = {
-    TableName: householdsTableName,
-    Key: { householdId: req.params.householdId },
-    UpdateExpression: "SET orders = list_append(orders, :newOrder)",
-    ExpressionAttributeValues: {
-      ":newOrder": newOrder,
-    },
+    TableName: ordersTableName,
+    Item,
   };
   await db
-    .update(params)
+    .put(params)
     .promise()
     .then(() => {
-      console.log(newOrder);
-      res.send({ ...newOrder });
+      console.log(Item);
+      res.send({ ...Item });
     })
     .catch((e) => {
       console.log(e);
@@ -73,9 +69,30 @@ router.post("/:householdId/orders", async function (req, res, next) {
     });
 });
 
-/* POST a new order for a household. */
-router.post("/:householdId/orders/:orderId/complete", async function (req, res, next) {
-  res.sendStatus(200)
-});
+/* POST an order completion for an order in a household. */
+router.post(
+  "/:householdId/orders/:orderId/complete",
+  async function (req, res, next) {
+    const params = {
+      TableName: ordersTableName,
+      Key: { orderId: req.params.orderId },
+      UpdateExpression: "SET completedAt = :completedAt",
+      ExpressionAttributeValues: {
+        ":completedAt": req.body.completedAt,
+      },
+    };
+    await db
+      .update(params)
+      .promise()
+      .then(() => {
+        console.log(req.params);
+        res.send({ ...req.params, ...req.body });
+      })
+      .catch((e) => {
+        console.log(e);
+        res.sendStatus(500);
+      });
+  }
+);
 
 module.exports = router;
