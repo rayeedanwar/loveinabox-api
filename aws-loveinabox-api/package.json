@@ -1,0 +1,19 @@
+{
+  "name": "aws-loveinabox-api",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "jest",
+    "test-watch": "jest --watch"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "serverless-http": "^3.1.1"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.289.0",
+    "@aws-sdk/lib-dynamodb": "^3.289.0",
+    "jest": "^29.5.0",
+    "serverless-offline": "^12.0.4"
+  }
+}

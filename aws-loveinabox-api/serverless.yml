@@ -1,0 +1,91 @@
+org: rayeedanwar
+app: aws-loveinabox-api
+service: aws-loveinabox-api
+frameworkVersion: "3"
+
+custom:
+  householdsTableName: "households-table-${sls:stage}"
+  itemsTableName: "items-table-${sls:stage}"
+  ordersTableName: "orders-table-${sls:stage}"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  httpApi:
+    cors: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [HouseholdsTable, Arn]
+            - Fn::GetAtt: [ItemsTable, Arn]
+            - Fn::GetAtt: [OrdersTable, Arn]
+  environment:
+    HOUSEHOLDS_TABLE: ${self:custom.householdsTableName}
+    ITEMS_TABLE: ${self:custom.itemsTableName}
+    ORDERS_TABLE: ${self:custom.ordersTableName}
+
+functions:
+  households-api:
+    handler: households.handler
+    events:
+      - httpApi: GET /households
+      - httpApi: POST /households
+      - httpApi: POST /households/{proxy+}
+  items-api:
+    handler: items.handler
+    events:
+      - httpApi: GET /items
+      - httpApi: POST /items
+  orders-api:
+    handler: orders.handler
+    events:
+      - httpApi: GET /orders
+      - httpApi: POST /orders
+
+resources:
+  Resources:
+    HouseholdsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: householdId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: householdId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:custom.householdsTableName}
+    OrdersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: orderId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: orderId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:custom.ordersTableName}
+    ItemsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: itemId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: itemId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:custom.itemsTableName}
+
+plugins:
+  - serverless-offline
