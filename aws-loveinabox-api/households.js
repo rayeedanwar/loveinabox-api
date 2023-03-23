@@ -3,14 +3,14 @@ const { randomUUID } = require("crypto");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const {
   DynamoDBDocumentClient,
-  PutCommand,
-  ScanCommand,
   UpdateCommand,
 } = require("@aws-sdk/lib-dynamodb");
 
 // think about reuse setup later
 const express = require("express");
 const serverless = require("serverless-http");
+
+const { getDynamoDbTable, putDynamoDbTable } = require("./utils");
 
 const app = express();
 
@@ -21,64 +21,33 @@ const dynamoDbClient = DynamoDBDocumentClient.from(client);
 
 app.use(express.json());
 
+// dynamoDb is basically middleware, surely there's a way of cleaning this up to avoid passing everytime?
+
 /* POST a new household. */
-app.post("/households", async function (req, res, next) {
-  const Item = {
-    ...req.body,
-    householdId: randomUUID(),
-  };
-  const params = {
-    TableName: HOUSEHOLDS_TABLE,
-    Item,
-  };
-  await dynamoDbClient
-    .send(new PutCommand(params))
-    .then(() => {
-      console.log(Item);
-      res.send({ ...Item });
-    })
-    .catch((e) => {
-      console.log(e);
-      res.sendStatus(500);
-    });
+app.post("/households", async function (req, res) {
+  await putDynamoDbTable(
+    dynamoDbClient,
+    HOUSEHOLDS_TABLE,
+    "householdId",
+    req.body,
+    res
+  );
 });
 
+// can I do anything about non used params in express args?
 app.get("/households", async function (req, res, next) {
-  await dynamoDbClient
-    .send(
-      new ScanCommand({
-        TableName: HOUSEHOLDS_TABLE,
-      })
-    )
-    .then((dbResult) => {
-      res.send(dbResult.Items);
-    })
-    .catch((e) => {
-      console.log(e);
-      res.sendStatus(500);
-    });
+  await getDynamoDbTable(dynamoDbClient, HOUSEHOLDS_TABLE, res);
 });
 
 app.post("/households/:householdId/orders", async function (req, res, next) {
-  const Item = {
-    ...req.body,
-    orderId: randomUUID(),
-    householdId: req.params.householdId,
-  };
-  const params = {
-    TableName: ORDERS_TABLE,
-    Item,
-  };
-  await dynamoDbClient
-    .send(new PutCommand(params))
-    .then(() => {
-      console.log(Item);
-      res.send({ ...Item });
-    })
-    .catch((e) => {
-      console.log(e);
-      res.sendStatus(500);
-    });
+  // how do we test this contract? hmmmm
+  await putDynamoDbTable(
+    dynamoDbClient,
+    HOUSEHOLDS_TABLE,
+    "orderId",
+    { ...req.body, householdId: req.params.householdId },
+    res
+  );
 });
 
 /* POST an order completion for an order in a household. */

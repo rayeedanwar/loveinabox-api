@@ -1,11 +1,6 @@
-const { randomUUID } = require("crypto");
-
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const {
-  DynamoDBDocumentClient,
-  PutCommand,
-  ScanCommand,
-} = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
+const { getDynamoDbTable, putDynamoDbTable } = require("./utils");
 
 // think about reuse setup later
 const express = require("express");
@@ -21,41 +16,12 @@ app.use(express.json());
 
 /* POST a new item. */
 app.post("/items", async function (req, res, next) {
-  const Item = {
-    ...req.body,
-    itemId: randomUUID(),
-  };
-  const params = {
-    TableName: ITEMS_TABLE,
-    Item,
-  };
-  await dynamoDbClient
-    .send(new PutCommand(params))
-    .then(() => {
-      console.log(Item);
-      res.send({ ...Item });
-    })
-    .catch((e) => {
-      console.log(e);
-      res.sendStatus(500);
-    });
+  await putDynamoDbTable(dynamoDbClient, ITEMS_TABLE, "itemId", req.body, res);
 });
 
 /* GET all items. */
 app.get("/items", async function (req, res, next) {
-  await dynamoDbClient
-    .send(
-      new ScanCommand({
-        TableName: ITEMS_TABLE,
-      })
-    )
-    .then((dbResult) => {
-      res.send(dbResult.Items);
-    })
-    .catch((e) => {
-      console.log(e);
-      res.sendStatus(500);
-    });
+  await getDynamoDbTable(dynamoDbClient, ITEMS_TABLE, res);
 });
 
 app.use((req, res, next) => {

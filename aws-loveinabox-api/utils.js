@@ -1,37 +1,47 @@
-const express = require("express");
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const {
-  DynamoDBDocumentClient,
-  PutCommand,
-  ScanCommand,
-  UpdateCommand,
-} = require("@aws-sdk/lib-dynamodb");
+const { randomUUID } = require("crypto");
+const { PutCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 
-const setupExpress = () => {
-  const app = express();
-  app.use(express.json());
-  return app;
-  // local host config would go here
-};
-
-const setupDynamoDbClient = () => {
-  const client = new DynamoDBClient();
-  return DynamoDBDocumentClient.from(client);
-};
-
-const postDynamoDb = async (dynamoDbClient, params) => {
+const getDynamoDbTable = async function (dynamoDbClient, tableName, res) {
   await dynamoDbClient
-    .send(new PutCommand(params))
-    .then(() => {
-      console.log(Item);
-      return Item;
+    .send(
+      new ScanCommand({
+        TableName: tableName,
+      })
+    )
+    .then((dbResult) => {
+      console.log(dbResult);
+      res.send(dbResult.Items);
     })
     .catch((e) => {
       console.log(e);
-      return {
-        e,
-      };
+      res.sendStatus(500);
     });
 };
 
-module.exports = { setupDynamoDbClient, postDynamoDb };
+const putDynamoDbTable = async (
+  dynamoDbClient,
+  tableName,
+  keyName,
+  putObject,
+  res
+) => {
+  putObject[keyName] = randomUUID();
+  const params = {
+    TableName: tableName,
+    Item: putObject,
+  };
+  await dynamoDbClient
+    .send(new PutCommand(params))
+    .then(() => {
+      res.send({ ...putObject });
+    })
+    .catch((e) => {
+      console.log(e);
+      res.sendStatus(500);
+    });
+};
+
+module.exports = {
+  putDynamoDbTable,
+  getDynamoDbTable,
+};
