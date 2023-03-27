@@ -43,7 +43,9 @@ app.post("/households/:householdId/orders", async function (req, res, next) {
   // how do we test this contract? hmmmm
   await putDynamoDbTable(
     dynamoDbClient,
-    HOUSEHOLDS_TABLE,
+    ORDERS_TABLE, // need integration tests specifically for issues like this:
+    // refactored this but didn't rename table to ORDERS_TABLE, so order ended up on HOUSEHOLDS_TABLE :S
+    // no tests caught this out
     "orderId",
     { ...req.body, householdId: req.params.householdId },
     res

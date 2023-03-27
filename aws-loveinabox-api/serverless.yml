@@ -1,5 +1,5 @@
 org: rayeedanwar
-app: aws-loveinabox-api
+app: aws-loveinabox
 service: aws-loveinabox-api
 frameworkVersion: "3"
 
