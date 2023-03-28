@@ -1,5 +1,3 @@
-const { randomUUID } = require("crypto");
-
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const {
   DynamoDBDocumentClient,
