@@ -6,17 +6,12 @@ env:
   SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
 
 jobs:
-  test:
+  test-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: npm i
       - run: npm run test
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
       - run: npm i serverless -g
       - run: serverless deploy --stage dev --region eu-west-3 --verbose
-      - run: serverless deploy --stage e2e --region eu-west-2
